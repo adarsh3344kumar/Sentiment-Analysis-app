@@ -56,14 +56,9 @@ import androidx.compose.ui.unit.sp
 import com.example.ml.ModelMetricsData
 import com.example.ml.VivaQuestion
 import com.example.ui.components.MetricStatCard
-import com.example.ui.theme.CyanAccent
-import com.example.ui.theme.DarkBorder
-import com.example.ui.theme.IndigoLight
 import com.example.ui.theme.SentimentNegative
 import com.example.ui.theme.SentimentNeutral
 import com.example.ui.theme.SentimentPositive
-import com.example.ui.theme.TextMuted
-import com.example.ui.theme.TextSecondary
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -81,6 +76,7 @@ fun EvaluationScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
             .testTag("evaluation_screen")
     ) {
@@ -91,32 +87,35 @@ fun EvaluationScreen(
         ) {
             androidx.compose.material3.IconButton(
                 onClick = onNavigateBack,
-                modifier = Modifier.padding(end = 4.dp).testTag("btn_evaluation_back")
+                modifier = Modifier
+                    .padding(end = 4.dp)
+                    .testTag("btn_evaluation_back")
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onBackground
                 )
             }
             Icon(
                 imageVector = Icons.Default.Assessment,
                 contentDescription = null,
-                tint = CyanAccent,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(end = 8.dp)
             )
             Column {
                 Text(
                     text = "Model Evaluation & Viva Guide",
                     style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Black
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = (-0.3).sp
                     ),
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
                     text = "Benchmark metrics, confusion matrix, & college presentation kit",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -126,8 +125,8 @@ fun EvaluationScreen(
         // Tab Navigation
         SecondaryTabRow(
             selectedTabIndex = selectedTab,
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            contentColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.primary
         ) {
             tabs.forEachIndexed { index, title ->
                 Tab(
@@ -136,8 +135,9 @@ fun EvaluationScreen(
                     text = {
                         Text(
                             text = title,
-                            fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal,
-                            fontSize = 13.sp
+                            fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Medium,
+                            fontSize = 13.sp,
+                            color = if (selectedTab == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 )
@@ -183,7 +183,7 @@ fun MetricsTabContent() {
                 value = "0.88",
                 subtitle = "Harmonic mean",
                 icon = Icons.Default.Assessment,
-                accentColor = CyanAccent,
+                accentColor = Color(0xFF0284C7),
                 modifier = Modifier.weight(1f)
             )
 
@@ -192,7 +192,7 @@ fun MetricsTabContent() {
                 value = "${ModelMetricsData.totalTestSamples}",
                 subtitle = "Held-out split",
                 icon = Icons.Default.Assessment,
-                accentColor = IndigoLight,
+                accentColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -201,23 +201,23 @@ fun MetricsTabContent() {
 
         // Classification Report Table Card
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, DarkBorder, RoundedCornerShape(16.dp)),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     text = "Per-Class Evaluation Report",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = "Tested on un-seen held-out evaluation dataset",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(14.dp))
@@ -226,15 +226,15 @@ fun MetricsTabContent() {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
                         .padding(horizontal = 8.dp, vertical = 6.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Class", style = MaterialTheme.typography.labelSmall, color = TextMuted, modifier = Modifier.weight(1.2f))
-                    Text("Precision", style = MaterialTheme.typography.labelSmall, color = TextMuted, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                    Text("Recall", style = MaterialTheme.typography.labelSmall, color = TextMuted, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                    Text("F1-Score", style = MaterialTheme.typography.labelSmall, color = TextMuted, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                    Text("Support", style = MaterialTheme.typography.labelSmall, color = TextMuted, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                    Text("Class", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1.2f))
+                    Text("Precision", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                    Text("Recall", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                    Text("F1-Score", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                    Text("Support", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -250,150 +250,135 @@ fun MetricsTabContent() {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = metric.className,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold,
                             color = color,
                             modifier = Modifier.weight(1.2f)
                         )
-                        Text("${metric.precision}", style = MaterialTheme.typography.bodySmall, color = Color.White, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                        Text("${metric.recall}", style = MaterialTheme.typography.bodySmall, color = Color.White, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                        Text("${metric.f1Score}", style = MaterialTheme.typography.bodySmall, color = Color.White, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                        Text("${metric.support}", style = MaterialTheme.typography.bodySmall, color = TextSecondary, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                        Text(
+                            text = String.format("%.2f", metric.precision),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = String.format("%.2f", metric.recall),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = String.format("%.2f", metric.f1Score),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = "${metric.support}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.End
+                        )
                     }
-                    HorizontalDivider(color = DarkBorder.copy(alpha = 0.5f))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 3x3 Confusion Matrix Card
+        // Confusion Matrix Card
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, DarkBorder, RoundedCornerShape(16.dp)),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "3×3 Confusion Matrix",
+                    text = "Confusion Matrix (3x3 Multiclass)",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "Rows: Actual Class | Columns: Predicted Class (Diagonal = True Positives)",
+                    text = "Actual (Rows) vs. Predicted (Columns)",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(14.dp))
 
+                val matrixLabels = listOf("Pred: Pos", "Pred: Neu", "Pred: Neg")
+                val rowLabels = listOf("Act: Pos", "Act: Neu", "Act: Neg")
+
                 // Column Headers
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Actual \\ Pred", style = MaterialTheme.typography.labelSmall, color = TextMuted, modifier = Modifier.weight(1.2f))
-                    Text("Pred Pos", style = MaterialTheme.typography.labelSmall, color = SentimentPositive, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                    Text("Pred Neg", style = MaterialTheme.typography.labelSmall, color = SentimentNegative, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                    Text("Pred Neu", style = MaterialTheme.typography.labelSmall, color = SentimentNeutral, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Spacer(modifier = Modifier.width(72.dp))
+                    matrixLabels.forEach { label ->
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val rowLabels = listOf("Act. Pos", "Act. Neg", "Act. Neu")
-                ModelMetricsData.confusionMatrix.matrix.forEachIndexed { rowIndex, row ->
+                ModelMetricsData.confusionMatrix.matrix.forEachIndexed { rIdx, row ->
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = rowLabels[rowIndex],
-                            style = MaterialTheme.typography.bodySmall,
+                            text = rowLabels[rIdx],
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            modifier = Modifier.weight(1.2f)
+                            modifier = Modifier.width(72.dp)
                         )
 
-                        row.forEachIndexed { colIndex, cellValue ->
-                            val isDiagonal = rowIndex == colIndex
-                            val cellBg = if (isDiagonal) IndigoLight.copy(alpha = 0.25f) else MaterialTheme.colorScheme.surface
-                            val cellBorder = if (isDiagonal) IndigoLight else DarkBorder
+                        row.forEachIndexed { cIdx, count ->
+                            val isDiagonal = rIdx == cIdx
+                            val cellBg = if (isDiagonal) SentimentPositive.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant
 
-                            Box(
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = cellBg,
+                                border = androidx.compose.foundation.BorderStroke(
+                                    1.dp,
+                                    if (isDiagonal) SentimentPositive.copy(alpha = 0.4f) else MaterialTheme.colorScheme.outline
+                                ),
                                 modifier = Modifier
                                     .weight(1f)
-                                    .padding(horizontal = 4.dp)
-                                    .height(36.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(cellBg)
-                                    .border(1.dp, cellBorder, RoundedCornerShape(8.dp)),
-                                contentAlignment = Alignment.Center
+                                    .padding(3.dp)
                             ) {
                                 Text(
-                                    text = "$cellValue",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = if (isDiagonal) FontWeight.Black else FontWeight.Normal,
-                                    color = if (isDiagonal) IndigoLight else TextSecondary
+                                    text = "$count",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = if (isDiagonal) FontWeight.ExtraBold else FontWeight.Normal,
+                                    color = if (isDiagonal) SentimentPositive else MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(vertical = 12.dp),
+                                    textAlign = TextAlign.Center
                                 )
                             }
                         }
                     }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Dataset & Pipeline Specs
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, DarkBorder, RoundedCornerShape(16.dp)),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Training & Pipeline Specifications",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-
-                ModelMetricsData.datasetDetails.forEach { (key, value) ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = key,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Text(
-                            text = value,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White,
-                            modifier = Modifier.weight(1.4f),
-                            textAlign = TextAlign.End
-                        )
-                    }
-                    HorizontalDivider(color = DarkBorder.copy(alpha = 0.3f))
+                    Spacer(modifier = Modifier.height(4.dp))
                 }
             }
         }
@@ -405,18 +390,18 @@ fun VivaTabContent() {
     Column {
         // Project Overview Script
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, DarkBorder, RoundedCornerShape(16.dp)),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.School,
                         contentDescription = null,
-                        tint = IndigoLight,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -424,7 +409,7 @@ fun VivaTabContent() {
                         text = "30-Second Viva Pitch / Abstract",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -433,7 +418,7 @@ fun VivaTabContent() {
                 Text(
                     text = "\"Our project is an end-to-end Sentiment Analysis Tool that classifies arbitrary text into Positive, Negative, or Neutral. It uses an NLP pipeline featuring text normalization, negation-handling N-grams, TF-IDF vectorization, and a multinomial classifier calibrated with Softmax. Inferences are logged in a Room SQLite database for instant analytics, search, and trend visualization.\"",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.9f),
+                    color = MaterialTheme.colorScheme.onSurface,
                     lineHeight = 18.sp
                 )
 
@@ -443,135 +428,104 @@ fun VivaTabContent() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surface)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .padding(8.dp)
                 ) {
                     Text(
                         text = "Hinglish tip: 'Sir, yeh tool customer reviews ko analyze karta hai. TF-IDF aur N-grams se 'not good' jaise negation capture hote hain, aur SQLite database mein saari history aur analytics charts save hote hain.'",
                         style = MaterialTheme.typography.bodySmall,
-                        color = CyanAccent,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
+        // 20 Viva Questions Accordion
         Text(
-            text = "Frequently Asked Viva Questions (Q&A)",
+            text = "20 Common Viva / Examiner Questions",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = Color.White
+            color = MaterialTheme.colorScheme.onBackground
         )
         Text(
-            text = "Tap on any question to view technical answer and Hinglish explanation",
+            text = "Tap any question to reveal the recommended technical response",
             style = MaterialTheme.typography.bodySmall,
-            color = TextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        ModelMetricsData.vivaQuestions.forEach { viva ->
-            VivaQuestionCard(viva = viva)
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-    }
-}
+        ModelMetricsData.vivaQuestions.forEachIndexed { index, viva ->
+            var expanded by remember { mutableStateOf(false) }
 
-@Composable
-fun VivaQuestionCard(viva: VivaQuestion) {
-    var isExpanded by remember { mutableStateOf(false) }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(1.dp, if (isExpanded) IndigoLight.copy(alpha = 0.5f) else DarkBorder, RoundedCornerShape(12.dp))
-            .clickable { isExpanded = !isExpanded },
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+                    .clickable { expanded = !expanded },
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
-                Row(
-                    modifier = Modifier.weight(1f),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clip(CircleShape)
-                            .background(IndigoLight.copy(alpha = 0.2f)),
-                        contentAlignment = Alignment.Center
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "${viva.id}",
-                            style = MaterialTheme.typography.labelSmall,
+                            text = "${index + 1}. ${viva.question}",
+                            style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
-                            color = IndigoLight
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Icon(
+                            imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(10.dp))
-
-                    Text(
-                        text = viva.question,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
-                    )
-                }
-
-                Icon(
-                    imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = if (isExpanded) "Collapse" else "Expand",
-                    tint = TextSecondary
-                )
-            }
-
-            AnimatedVisibility(visible = isExpanded) {
-                Column(modifier = Modifier.padding(top = 12.dp)) {
-                    Text(
-                        text = "Technical Answer:",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = IndigoLight
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = viva.englishAnswer,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary,
-                        lineHeight = 18.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.surface)
-                            .padding(8.dp)
-                    ) {
-                        Column {
+                    AnimatedVisibility(visible = expanded) {
+                        Column(modifier = Modifier.padding(top = 10.dp)) {
                             Text(
-                                text = "Hinglish Quick Note:",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = CyanAccent
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = viva.hinglishNote,
+                                text = viva.englishAnswer,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = TextSecondary,
-                                fontSize = 11.sp
+                                color = MaterialTheme.colorScheme.onSurface,
+                                lineHeight = 18.sp
                             )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .padding(8.dp)
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "Hinglish Quick Note:",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = viva.hinglishNote,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 11.sp
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -584,18 +538,18 @@ fun VivaQuestionCard(viva: VivaQuestion) {
 fun CodeBlueprintTabContent() {
     Column {
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, DarkBorder, RoundedCornerShape(16.dp)),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.Code,
                         contentDescription = null,
-                        tint = CyanAccent,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -603,7 +557,7 @@ fun CodeBlueprintTabContent() {
                         text = "FastAPI Backend Reference (Python)",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -611,7 +565,7 @@ fun CodeBlueprintTabContent() {
                 Text(
                     text = "Complete production Python backend code for the REST API endpoint:",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -620,7 +574,7 @@ fun CodeBlueprintTabContent() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFF070A11))
+                        .background(Color(0xFF0F172A))
                         .padding(12.dp)
                 ) {
                     Text(
@@ -637,11 +591,11 @@ fun CodeBlueprintTabContent() {
         Spacer(modifier = Modifier.height(16.dp))
 
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, DarkBorder, RoundedCornerShape(16.dp)),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -656,7 +610,7 @@ fun CodeBlueprintTabContent() {
                         text = "React Frontend Reference (App.jsx)",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -664,7 +618,7 @@ fun CodeBlueprintTabContent() {
                 Text(
                     text = "Clean React component connecting to the /analyze endpoint:",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -673,7 +627,7 @@ fun CodeBlueprintTabContent() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFF070A11))
+                        .background(Color(0xFF0F172A))
                         .padding(12.dp)
                 ) {
                     Text(

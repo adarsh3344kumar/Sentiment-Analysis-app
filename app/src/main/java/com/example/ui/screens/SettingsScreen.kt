@@ -55,12 +55,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.SentimentViewModel
-import com.example.ui.theme.DarkBorder
-import com.example.ui.theme.IndigoLight
 import com.example.ui.theme.SentimentNegative
 import com.example.ui.theme.SentimentPositive
-import com.example.ui.theme.TextMuted
-import com.example.ui.theme.TextSecondary
 import com.example.ui.theme.ThemeMode
 
 @Composable
@@ -75,6 +71,7 @@ fun SettingsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
             .testTag("settings_screen")
@@ -87,21 +84,22 @@ fun SettingsScreen(
             Icon(
                 imageVector = Icons.Default.Settings,
                 contentDescription = null,
-                tint = IndigoLight,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(end = 8.dp)
             )
             Column {
                 Text(
                     text = "Settings & Preferences",
                     style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Black
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = (-0.3).sp
                     ),
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
                     text = "App configuration, theme modes, and engine status",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -113,18 +111,27 @@ fun SettingsScreen(
             text = "Appearance",
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
-            color = Color.White
+            color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(8.dp))
 
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, DarkBorder, RoundedCornerShape(16.dp)),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
+                ThemeOptionRow(
+                    title = "Light Theme (Default)",
+                    subtitle = "Crisp light surfaces, high-contrast text, modern slate",
+                    icon = Icons.Default.LightMode,
+                    isSelected = themeMode == ThemeMode.LIGHT,
+                    onClick = { viewModel.setThemeMode(ThemeMode.LIGHT) },
+                    testTag = "theme_light_option"
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline, modifier = Modifier.padding(vertical = 10.dp))
                 ThemeOptionRow(
                     title = "System Default",
                     subtitle = "Match device dark/light theme setting",
@@ -133,7 +140,7 @@ fun SettingsScreen(
                     onClick = { viewModel.setThemeMode(ThemeMode.SYSTEM) },
                     testTag = "theme_system_option"
                 )
-                HorizontalDivider(color = DarkBorder.copy(alpha = 0.5f), modifier = Modifier.padding(vertical = 10.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline, modifier = Modifier.padding(vertical = 10.dp))
                 ThemeOptionRow(
                     title = "Dark Theme",
                     subtitle = "Deep navy & indigo palette for low light",
@@ -142,256 +149,246 @@ fun SettingsScreen(
                     onClick = { viewModel.setThemeMode(ThemeMode.DARK) },
                     testTag = "theme_dark_option"
                 )
-                HorizontalDivider(color = DarkBorder.copy(alpha = 0.5f), modifier = Modifier.padding(vertical = 10.dp))
-                ThemeOptionRow(
-                    title = "Light Theme",
-                    subtitle = "Clean white & soft slate appearance",
-                    icon = Icons.Default.LightMode,
-                    isSelected = themeMode == ThemeMode.LIGHT,
-                    onClick = { viewModel.setThemeMode(ThemeMode.LIGHT) },
-                    testTag = "theme_light_option"
-                )
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
-        // Section 2: Engine & Backend Status
+        // Section 2: Model Evaluation & College Presentation Kit
         Text(
-            text = "Inference Engine & Backend",
+            text = "Model Evaluation & Viva Guide",
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
-            color = Color.White
+            color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(8.dp))
 
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, DarkBorder, RoundedCornerShape(16.dp)),
+                .clickable { onOpenEvaluation() }
+                .testTag("btn_open_evaluation_screen"),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF0284C7).copy(alpha = 0.12f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Assessment,
+                            contentDescription = null,
+                            tint = Color(0xFF0284C7),
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column {
+                        Text(
+                            text = "Model Evaluation, Matrix & Viva Kit",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Precision, Recall, F1-Score, Confusion Matrix, and 20 Viva Q&As",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Text(
+                        text = "View",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        // Section 3: Data Privacy & Storage Controls
+        Text(
+            text = "Data Privacy & Local Storage",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .background(SentimentPositive.copy(alpha = 0.15f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Wifi,
-                            contentDescription = null,
-                            tint = SentimentPositive,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = SentimentPositive,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
                         Text(
-                            text = "Engine Status",
+                            text = "Zero-Cloud Data Collection",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Active & Operational (Zero Latency)",
+                            text = "All text analyzed stays strictly on your local device.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = SentimentPositive
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(SentimentPositive.copy(alpha = 0.2f))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = "ONLINE",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = SentimentPositive,
-                            fontSize = 10.sp
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = "Mode: On-Device NLP Pipeline + Optional FastAPI REST Integration\nModel: TF-IDF (1,2) + Multinomial Classifier v1.3-pro",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary,
-                    lineHeight = 16.sp
-                )
-
+                Spacer(modifier = Modifier.height(14.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                 Spacer(modifier = Modifier.height(14.dp))
 
-                OutlinedButton(
-                    onClick = onOpenEvaluation,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("view_model_eval_button"),
-                    shape = RoundedCornerShape(12.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Assessment,
-                        contentDescription = null,
-                        tint = IndigoLight,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "View Model Metrics & Viva Guide",
-                        color = IndigoLight,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Column {
+                        Text(
+                            text = "Purge All History Records",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = SentimentNegative
+                        )
+                        Text(
+                            text = "Delete local sentiment database",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    OutlinedButton(
+                        onClick = { showClearConfirm = true },
+                        border = androidx.compose.foundation.BorderStroke(1.dp, SentimentNegative.copy(alpha = 0.5f))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteForever,
+                            contentDescription = null,
+                            tint = SentimentNegative,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Purge", color = SentimentNegative, style = MaterialTheme.typography.labelSmall)
+                    }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
-        // Section 3: Data Management & Privacy
+        // Section 4: System Architecture & Version Info
         Text(
-            text = "Data Management & Privacy",
+            text = "System Architecture",
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
-            color = Color.White
+            color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(8.dp))
 
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, DarkBorder, RoundedCornerShape(16.dp)),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Lock,
-                        contentDescription = null,
-                        tint = IndigoLight,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Local Privacy Guaranteed",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Text(
-                    text = "Analyzed reviews and classification scores are stored locally in the on-device SQLite database (Room). No personal review text is broadcast or sold to external third parties.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedButton(
-                    onClick = { showClearConfirm = true },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("settings_clear_history_button"),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.DeleteForever,
-                        contentDescription = null,
-                        tint = SentimentNegative,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Clear Local History Database",
-                        color = SentimentNegative,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                SystemInfoRow(label = "Application Version", value = "1.2.0 (Production Release)")
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline, modifier = Modifier.padding(vertical = 8.dp))
+                SystemInfoRow(label = "Frontend Framework", value = "Kotlin Jetpack Compose + M3")
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline, modifier = Modifier.padding(vertical = 8.dp))
+                SystemInfoRow(label = "ML Classification Engine", value = "On-Device TF-IDF + Logistic Reg")
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline, modifier = Modifier.padding(vertical = 8.dp))
+                SystemInfoRow(label = "Local Persistence Engine", value = "Room 2.6.1 (SQLite WAL Mode)")
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline, modifier = Modifier.padding(vertical = 8.dp))
+                SystemInfoRow(label = "Backend Protocol", value = "FastAPI REST API / Local Fallback")
             }
         }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Section 4: App Information
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, DarkBorder, RoundedCornerShape(16.dp)),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = null,
-                        tint = TextSecondary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Application Information",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                AppInfoRow(label = "Application Name", value = "Sentiment Analysis Tool")
-                AppInfoRow(label = "Version", value = "1.0.0 (Release)")
-                AppInfoRow(label = "Framework", value = "Jetpack Compose + Material 3")
-                AppInfoRow(label = "Database Engine", value = "Android Room SQLite (sentiment.db)")
-                AppInfoRow(label = "ML Architecture", value = "TF-IDF + Softmax Classifier")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(30.dp))
     }
 
     if (showClearConfirm) {
         AlertDialog(
             onDismissRequest = { showClearConfirm = false },
-            title = { Text("Clear Local History?") },
-            text = { Text("Are you sure you want to permanently delete all saved analyses from your device? This action cannot be undone.") },
+            title = {
+                Text(
+                    text = "Purge All Saved Data?",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            },
+            text = {
+                Text(
+                    text = "This will permanently remove all analyzed sentiment records from this device's SQLite database.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.clearAllHistory()
+                        viewModel.clearAllAnalyses()
                         showClearConfirm = false
                     }
                 ) {
-                    Text("Clear All", color = SentimentNegative, fontWeight = FontWeight.Bold)
+                    Text("Purge All", color = SentimentNegative, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showClearConfirm = false }) {
-                    Text("Cancel")
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(16.dp)
         )
     }
 }
 
 @Composable
-fun ThemeOptionRow(
+private fun ThemeOptionRow(
     title: String,
     subtitle: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -402,48 +399,43 @@ fun ThemeOptionRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 4.dp)
-            .testTag(testTag),
-        verticalAlignment = Alignment.CenterVertically
+            .clickable { onClick() }
+            .testTag(testTag)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(if (isSelected) IndigoLight.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surface),
-            contentAlignment = Alignment.Center
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f)
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = if (isSelected) IndigoLight else TextSecondary,
-                modifier = Modifier.size(20.dp)
+                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(22.dp)
             )
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                color = if (isSelected) IndigoLight else Color.White
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary,
-                fontSize = 11.sp
-            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
 
         if (isSelected) {
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = "Selected",
-                tint = IndigoLight,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -451,14 +443,22 @@ fun ThemeOptionRow(
 }
 
 @Composable
-fun AppInfoRow(label: String, value: String) {
+private fun SystemInfoRow(label: String, value: String) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 3.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = label, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
-        Text(text = value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = Color.White)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }

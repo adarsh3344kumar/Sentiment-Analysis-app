@@ -226,6 +226,18 @@ object SentimentEngine {
         "it's" to "it is"
     )
 
+    fun normalizeText(text: String): String {
+        var normalized = text.trim().lowercase(Locale.ROOT)
+        for ((k, v) in CONTRACTIONS) {
+            normalized = normalized.replace(k, v)
+        }
+        return normalized
+    }
+
+    fun predict(rawText: String): SentimentResult {
+        return analyze(rawText)
+    }
+
     fun analyze(rawText: String): SentimentResult {
         val trimmed = rawText.trim()
         if (trimmed.isEmpty()) {

@@ -112,16 +112,16 @@ fun AnalyzeScreen(
         // Headline & Value Proposition
         Column {
             Text(
-                text = "Understand the emotion behind your words.",
+                text = "Understand the emotion behind every word",
                 style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = (-0.5).sp
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-0.3).sp
                 ),
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Instant 3-class sentiment prediction (Positive, Negative, Neutral) powered by on-device NLP with negation and sarcasm handling.",
+                text = "Predict Positive, Negative, or Neutral sentiment with confidence scores, negation awareness, and sarcasm detection.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 18.sp
@@ -132,7 +132,7 @@ fun AnalyzeScreen(
 
         // Quick Sample Chips
         Text(
-            text = "Select an example review to test:",
+            text = "Try sample inputs:",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold
@@ -190,7 +190,7 @@ fun AnalyzeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Enter Review / Text",
+                        text = "Enter Review or Text",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -221,8 +221,8 @@ fun AnalyzeScreen(
                     },
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                         focusedTextColor = MaterialTheme.colorScheme.onSurface,
@@ -256,7 +256,7 @@ fun AnalyzeScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.ContentPaste,
-                                        contentDescription = "Paste from Clipboard",
+                                        contentDescription = "Paste text from clipboard",
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
@@ -265,59 +265,68 @@ fun AnalyzeScreen(
                     }
                 )
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                // Action Buttons
+                // Action Buttons Row: Analyze Sentiment & Clear
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    OutlinedButton(
-                        onClick = { viewModel.clearInput() },
+                    Button(
+                        onClick = { viewModel.analyzeSentiment() },
+                        enabled = !isAnalyzing && inputText.isNotBlank(),
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp)
-                            .testTag("clear_button"),
-                        shape = RoundedCornerShape(12.dp),
-                        enabled = inputText.isNotEmpty() && !isAnalyzing,
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-                    ) {
-                        Text("Clear", color = MaterialTheme.colorScheme.onSurface)
-                    }
-
-                    Button(
-                        onClick = { viewModel.analyzeSentiment() },
-                        modifier = Modifier
-                            .weight(2f)
-                            .height(48.dp)
-                            .testTag("analyze_sentiment_button"),
+                            .testTag("btn_analyze"),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        ),
-                        enabled = !isAnalyzing
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
                     ) {
                         if (isAnalyzing) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = Color.White,
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .testTag("loading_indicator"),
+                                color = MaterialTheme.colorScheme.onPrimary,
                                 strokeWidth = 2.dp
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Analyzing...", fontWeight = FontWeight.Bold, color = Color.White)
+                            Text(
+                                text = "Analyzing NLP...",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold
+                            )
                         } else {
                             Icon(
                                 imageVector = Icons.Default.FlashOn,
                                 contentDescription = null,
-                                tint = Color.White,
                                 modifier = Modifier.size(18.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = "Analyze Sentiment",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                                color = Color.White
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    if (inputText.isNotEmpty()) {
+                        OutlinedButton(
+                            onClick = { viewModel.clearInput() },
+                            modifier = Modifier
+                                .height(48.dp)
+                                .testTag("btn_clear_input"),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                        ) {
+                            Text(
+                                text = "Clear",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -325,7 +334,7 @@ fun AnalyzeScreen(
             }
         }
 
-        // Error message banner
+        // Error Banner
         AnimatedVisibility(
             visible = errorMessage != null,
             enter = fadeIn(),
@@ -333,175 +342,205 @@ fun AnalyzeScreen(
         ) {
             errorMessage?.let { error ->
                 Spacer(modifier = Modifier.height(12.dp))
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("error_card"),
                     shape = RoundedCornerShape(12.dp),
-                    color = SentimentNegative.copy(alpha = 0.1f),
+                    colors = CardDefaults.cardColors(
+                        containerColor = SentimentNegative.copy(alpha = 0.1f)
+                    ),
                     border = BorderStroke(1.dp, SentimentNegative.copy(alpha = 0.4f))
                 ) {
                     Row(
-                        modifier = Modifier.padding(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = Icons.Default.Warning,
-                            contentDescription = "Error",
+                            contentDescription = "Error icon",
                             tint = SentimentNegative,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(22.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = error,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = SentimentNegative
-                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Validation / Analysis Notice",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = SentimentNegative
+                            )
+                            Text(
+                                text = error,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        IconButton(onClick = { viewModel.clearError() }) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = "Retry",
+                                tint = SentimentNegative
+                            )
+                        }
                     }
                 }
             }
         }
 
-        // Live Result Display
-        if (latestResult != null) {
-            Spacer(modifier = Modifier.height(20.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+        // Latest Result Card
+        latestResult?.let { result ->
+            Spacer(modifier = Modifier.height(16.dp))
+            ResultCard(result = result)
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Recent Activity Section
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.History,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "Live Analysis Output",
+                    text = "Recent Activity",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onBackground
                 )
-
-                Row {
-                    IconButton(
-                        onClick = {
-                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                            val clip = ClipData.newPlainText("Sentiment Result", "Sentiment: ${latestResult?.sentiment?.title}, Confidence: ${(latestResult!!.confidence * 100).toInt()}%")
-                            clipboard.setPrimaryClip(clip)
-                            Toast.makeText(context, "Result copied to clipboard", Toast.LENGTH_SHORT).show()
-                        },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ContentCopy,
-                            contentDescription = "Copy Result",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    IconButton(
-                        onClick = { viewModel.clearLatestResult() },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Analyze Another",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            ResultCard(result = latestResult!!)
-        }
-
-        // Recent Analysis Preview
-        if (allAnalyses.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(24.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.History,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "Recent Analyses",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
+            if (allAnalyses.isNotEmpty()) {
                 Text(
-                    text = "View All (${allAnalyses.size})",
+                    text = "View all (${allAnalyses.size})",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { onNavigateToHistory() }
+                    modifier = Modifier
+                        .clickable { onNavigateToHistory() }
+                        .padding(4.dp)
+                        .testTag("btn_view_all_history")
                 )
             }
+        }
 
-            Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp)),
+        if (allAnalyses.isEmpty()) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
-                Column(modifier = Modifier.padding(14.dp)) {
-                    allAnalyses.take(3).forEachIndexed { idx, item ->
-                        val sentimentType = SentimentType.fromString(item.sentiment)
-                        val dateFormat = remember { SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()) }
-                        val dateFormatted = remember(item.createdAt) { dateFormat.format(Date(item.createdAt)) }
-
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.History,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.size(36.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "No sentiment analyses recorded yet",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Enter text above or tap a sample review to get your first prediction.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                allAnalyses.take(3).forEach { item ->
+                    val sentimentType = SentimentType.valueOf(item.predictedSentiment)
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onNavigateToHistory() }
+                            .testTag("recent_item_${item.id}"),
+                        shape = RoundedCornerShape(14.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                    ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp),
+                                .padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(8.dp)
+                                    .size(36.dp)
                                     .clip(CircleShape)
-                                    .background(sentimentType.color)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = item.inputText,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = sentimentType.title,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = sentimentType.color,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                                    .background(sentimentType.color.copy(alpha = 0.12f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = sentimentType.icon,
+                                    contentDescription = sentimentType.title,
+                                    tint = sentimentType.color,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
 
-                        if (idx < minOf(2, allAnalyses.size - 1)) {
-                            HorizontalDivider(
-                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f),
-                                modifier = Modifier.padding(vertical = 4.dp)
-                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = item.inputText,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        text = sentimentType.title,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = sentimentType.color
+                                    )
+                                    Text(
+                                        text = "• ${(item.confidenceScore * 100).toInt()}% conf",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        text = "• ${SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date(item.timestamp))}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(30.dp))
     }
 }

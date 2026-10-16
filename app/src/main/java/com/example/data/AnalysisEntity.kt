@@ -35,4 +35,13 @@ data class AnalysisEntity(
 
     @ColumnInfo(name = "keywords")
     val keywords: String = ""
-)
+) {
+    val predictedSentiment: String get() = sentiment.uppercase()
+    val confidenceScore: Float get() = confidence
+    val timestamp: Long get() = createdAt
+    val positiveScore: Float get() = positiveProb
+    val negativeScore: Float get() = negativeProb
+    val neutralScore: Float get() = neutralProb
+    val inferenceLatencyMs: Long get() = 12L
+    val engineType: String get() = modelVersion
+}

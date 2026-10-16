@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -25,15 +26,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
-import com.example.ui.theme.CyanAccent
-import com.example.ui.theme.IndigoLight
-import com.example.ui.theme.SentimentPositive
 
 @Composable
 fun SentimentHeroHeader(modifier: Modifier = Modifier) {
@@ -41,8 +38,9 @@ fun SentimentHeroHeader(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp)),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        tonalElevation = 2.dp
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 1.dp,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             Image(
@@ -54,7 +52,7 @@ fun SentimentHeroHeader(modifier: Modifier = Modifier) {
                 contentScale = ContentScale.Crop
             )
 
-            // Gradient scrim for text readability
+            // Dynamic scrim ensuring crisp high contrast in both light and dark themes
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -62,8 +60,8 @@ fun SentimentHeroHeader(modifier: Modifier = Modifier) {
                     .background(
                         Brush.verticalGradient(
                             colors = listOf(
-                                Color.Black.copy(alpha = 0.35f),
-                                Color(0xFF0B0F19).copy(alpha = 0.88f)
+                                Color(0xFF0F172A).copy(alpha = 0.45f),
+                                Color(0xFF0F172A).copy(alpha = 0.90f)
                             )
                         )
                     )
@@ -81,21 +79,21 @@ fun SentimentHeroHeader(modifier: Modifier = Modifier) {
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(IndigoLight.copy(alpha = 0.25f))
+                            .background(Color(0xFF6366F1).copy(alpha = 0.35f))
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 imageVector = Icons.Default.AutoAwesome,
                                 contentDescription = null,
-                                tint = CyanAccent,
+                                tint = Color(0xFF67E8F9),
                                 modifier = Modifier.size(14.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "NLP ENGINE v1.2",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = CyanAccent,
+                                color = Color(0xFF67E8F9),
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -103,37 +101,48 @@ fun SentimentHeroHeader(modifier: Modifier = Modifier) {
 
                     Spacer(modifier = Modifier.weight(1f))
 
-                    Box(
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(SentimentPositive.copy(alpha = 0.2f))
+                            .background(Color.White.copy(alpha = 0.15f))
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
+                        Icon(
+                            imageVector = Icons.Default.Shield,
+                            contentDescription = null,
+                            tint = Color(0xFF34D399),
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "3-CLASS CLASSIFIER",
+                            text = "100% On-Device",
                             style = MaterialTheme.typography.labelSmall,
-                            color = SentimentPositive,
-                            fontWeight = FontWeight.Bold
+                            color = Color.White,
+                            fontWeight = FontWeight.Medium
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = "Sentiment Analysis Tool",
-                    style = MaterialTheme.typography.titleLarge.copy(
+                    text = "Real-Time NLP Intelligence",
+                    style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.ExtraBold,
-                        letterSpacing = 0.5.sp
+                        letterSpacing = (-0.2).sp
                     ),
-                    color = Color.White,
-                    modifier = Modifier.testTag("app_hero_title")
+                    color = Color.White
                 )
 
+                Spacer(modifier = Modifier.height(2.dp))
+
                 Text(
-                    text = "Real-time TF-IDF & N-Gram Machine Learning Inference",
+                    text = "Classifying tone, polarity, and sarcasm across English & Hinglish reviews instantly.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.82f)
+                    color = Color.White.copy(alpha = 0.85f),
+                    lineHeight = 16.sp,
+                    maxLines = 2
                 )
             }
         }

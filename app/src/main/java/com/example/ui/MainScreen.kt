@@ -4,15 +4,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Analytics
-import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.outlined.Analytics
-import androidx.compose.material.icons.outlined.Assessment
 import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.Psychology
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.Icon
@@ -42,8 +40,6 @@ import com.example.ui.screens.EvaluationScreen
 import com.example.ui.screens.HistoryScreen
 import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.TestingDashboardScreen
-import com.example.ui.theme.IndigoLight
-import com.example.ui.theme.TextSecondary
 
 sealed class NavItem(
     val route: String,
@@ -54,9 +50,9 @@ sealed class NavItem(
 ) {
     object Home : NavItem(
         route = "home",
-        title = "Home",
-        selectedIcon = Icons.Filled.Psychology,
-        unselectedIcon = Icons.Outlined.Psychology,
+        title = "Analyze",
+        selectedIcon = Icons.Filled.Home,
+        unselectedIcon = Icons.Outlined.Home,
         testTag = "nav_item_home"
     )
 
@@ -120,9 +116,9 @@ fun MainScreen(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
             NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = Color.White,
-                tonalElevation = 4.dp
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                tonalElevation = 3.dp
             ) {
                 navItems.forEachIndexed { index, item ->
                     val selected = selectedIndex == index && !showEvaluationSubscreen
@@ -146,11 +142,11 @@ fun MainScreen(
                             )
                         },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color.White,
-                            selectedTextColor = IndigoLight,
-                            indicatorColor = MaterialTheme.colorScheme.primary,
-                            unselectedIconColor = TextSecondary,
-                            unselectedTextColor = TextSecondary
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                         ),
                         modifier = Modifier.testTag(item.testTag)
                     )

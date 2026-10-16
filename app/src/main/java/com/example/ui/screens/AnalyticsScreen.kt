@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -40,14 +41,9 @@ import com.example.ui.SentimentViewModel
 import com.example.ui.components.ChartLegendItem
 import com.example.ui.components.MetricStatCard
 import com.example.ui.components.SentimentDonutChart
-import com.example.ui.theme.CyanAccent
-import com.example.ui.theme.DarkBorder
-import com.example.ui.theme.IndigoLight
 import com.example.ui.theme.SentimentNegative
 import com.example.ui.theme.SentimentNeutral
 import com.example.ui.theme.SentimentPositive
-import com.example.ui.theme.TextMuted
-import com.example.ui.theme.TextSecondary
 
 @Composable
 fun AnalyticsScreen(
@@ -59,6 +55,7 @@ fun AnalyticsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
             .testTag("analytics_screen")
@@ -71,21 +68,22 @@ fun AnalyticsScreen(
             Icon(
                 imageVector = Icons.Default.Analytics,
                 contentDescription = null,
-                tint = IndigoLight,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(end = 8.dp)
             )
             Column {
                 Text(
                     text = "Analytics Dashboard",
                     style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Black
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = (-0.3).sp
                     ),
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
-                    text = "Aggregated dataset metrics calculated from Room SQLite",
+                    text = "Aggregated dataset metrics calculated from local SQLite",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -98,51 +96,64 @@ fun AnalyticsScreen(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             MetricStatCard(
-                title = "Total Analyses",
-                value = "${analytics.totalCount}",
-                subtitle = "Logged in database",
+                title = "Total Scanned",
+                value = "${analytics.totalAnalyses}",
+                subtitle = "Lifetime predictions",
                 icon = Icons.Default.TrendingUp,
-                accentColor = IndigoLight,
+                accentColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .weight(1f)
-                    .testTag("kpi_total_analyses")
+                    .testTag("stat_card_total")
             )
 
             MetricStatCard(
                 title = "Avg Confidence",
-                value = "${analytics.avgConfidence.toInt()}%",
+                value = "${(analytics.averageConfidence * 100).toInt()}%",
                 subtitle = "Model certainty",
                 icon = Icons.Default.Speed,
-                accentColor = CyanAccent,
+                accentColor = Color(0xFF0284C7),
                 modifier = Modifier
                     .weight(1f)
-                    .testTag("kpi_avg_confidence")
+                    .testTag("stat_card_confidence")
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
-        // Visual Sentiment Donut Chart Card
+        // Sentiment Distribution Chart Card
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, DarkBorder, RoundedCornerShape(20.dp)),
+                .testTag("distribution_chart_card"),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Sentiment Class Distribution",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    modifier = Modifier.align(Alignment.Start)
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Sentiment Breakdown",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Real-time",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -154,38 +165,38 @@ fun AnalyticsScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Legends
+                // Breakdown legend list
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     ChartLegendItem(
                         label = "Positive Reviews",
                         count = analytics.positiveCount,
-                        percent = analytics.positivePercent,
+                        percent = analytics.positivePercentage,
                         color = SentimentPositive
                     )
                     ChartLegendItem(
-                        label = "Neutral / Factual",
+                        label = "Neutral Reviews",
                         count = analytics.neutralCount,
-                        percent = analytics.neutralPercent,
+                        percent = analytics.neutralPercentage,
                         color = SentimentNeutral
                     )
                     ChartLegendItem(
-                        label = "Negative Feedback",
+                        label = "Negative Reviews",
                         count = analytics.negativeCount,
-                        percent = analytics.negativePercent,
+                        percent = analytics.negativePercentage,
                         color = SentimentNegative
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
-        // Three class individual breakdowns
+        // Polarity Breakdown Cards Row
         Text(
             text = "Class Volume Breakdown",
-            style = MaterialTheme.typography.titleSmall,
+            style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
-            color = Color.White
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -194,125 +205,163 @@ fun AnalyticsScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            ClassCountMiniCard(
-                label = "Positive",
+            VolumeCard(
+                title = "Positive",
                 count = analytics.positiveCount,
-                percent = analytics.positivePercent,
-                color = SentimentPositive,
+                percent = analytics.positivePercentage,
                 icon = Icons.Default.CheckCircle,
+                color = SentimentPositive,
                 modifier = Modifier.weight(1f)
             )
 
-            ClassCountMiniCard(
-                label = "Neutral",
+            VolumeCard(
+                title = "Neutral",
                 count = analytics.neutralCount,
-                percent = analytics.neutralPercent,
-                color = SentimentNeutral,
+                percent = analytics.neutralPercentage,
                 icon = Icons.Default.RemoveCircle,
+                color = SentimentNeutral,
                 modifier = Modifier.weight(1f)
             )
 
-            ClassCountMiniCard(
-                label = "Negative",
+            VolumeCard(
+                title = "Negative",
                 count = analytics.negativeCount,
-                percent = analytics.negativePercent,
-                color = SentimentNegative,
+                percent = analytics.negativePercentage,
                 icon = Icons.Default.Error,
+                color = SentimentNegative,
                 modifier = Modifier.weight(1f)
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
-        // Executive Summary Card
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, DarkBorder, RoundedCornerShape(16.dp)),
+        // Performance & Benchmark Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Executive Summary",
+                    text = "System Performance Metrics",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(modifier = Modifier.height(6.dp))
-                val summaryText = if (analytics.totalCount == 0) {
-                    "No review data available yet. Please submit reviews on the Analyze tab to generate live insights."
-                } else if (analytics.positiveCount >= analytics.negativeCount && analytics.positiveCount >= analytics.neutralCount) {
-                    "Overall sentiment trends favorably positive (${analytics.positivePercent.toInt()}%). Key positive patterns dominate customer feedback with solid user satisfaction."
-                } else if (analytics.negativeCount >= analytics.positiveCount) {
-                    "Critical negative feedback accounts for ${analytics.negativePercent.toInt()}% of analyzed records. Attention required for recurring service delays and defect issues."
-                } else {
-                    "Customer feedback is predominantly neutral/informational (${analytics.neutralPercent.toInt()}%), reflecting objective inquiries and standard transaction confirmations."
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Average Inference Speed",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "${analytics.averageInferenceSpeedMs}ms / text",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
-                Text(
-                    text = summaryText,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
-                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Dominant Sentiment Class",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = analytics.dominantSentiment,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = when (analytics.dominantSentiment) {
+                            "POSITIVE" -> SentimentPositive
+                            "NEGATIVE" -> SentimentNegative
+                            else -> SentimentNeutral
+                        }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Database Engine",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "SQLite Room (WAL Mode)",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
         }
-
-        Spacer(modifier = Modifier.height(30.dp))
     }
 }
 
 @Composable
-fun ClassCountMiniCard(
-    label: String,
+private fun VolumeCard(
+    title: String,
     count: Int,
     percent: Float,
-    color: Color,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: Color,
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.border(1.dp, DarkBorder, RoundedCornerShape(14.dp)),
+        modifier = modifier,
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.Start
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = color,
-                    fontWeight = FontWeight.Bold
-                )
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = color,
-                    modifier = androidx.compose.ui.Modifier.size(14.dp)
-                )
-            }
-
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(20.dp)
+            )
             Spacer(modifier = Modifier.height(6.dp))
-
             Text(
                 text = "$count",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Black,
-                color = Color.White
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
-
             Text(
-                text = "${percent.toInt()}% of total",
+                text = "${percent.toInt()}%",
                 style = MaterialTheme.typography.labelSmall,
-                color = TextMuted,
+                color = color,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 10.sp
             )
         }

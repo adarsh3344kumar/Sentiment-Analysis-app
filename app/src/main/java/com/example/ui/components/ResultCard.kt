@@ -28,6 +28,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -40,11 +41,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ml.SentimentResult
+import com.example.ml.SentimentType
 import com.example.ui.theme.SentimentNegative
 import com.example.ui.theme.SentimentNeutral
 import com.example.ui.theme.SentimentPositive
-import com.example.ui.theme.TextMuted
-import com.example.ui.theme.TextSecondary
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -52,26 +52,35 @@ fun ResultCard(
     result: SentimentResult,
     modifier: Modifier = Modifier
 ) {
+    val sentimentColor = when (result.sentiment) {
+        SentimentType.POSITIVE -> SentimentPositive
+        SentimentType.NEGATIVE -> SentimentNegative
+        SentimentType.NEUTRAL -> SentimentNeutral
+    }
+
+    val badgeBg = sentimentColor.copy(alpha = 0.12f)
+
     AnimatedVisibility(
         visible = true,
-        enter = fadeIn() + slideInVertically(initialOffsetY = { 40 })
+        enter = fadeIn() + slideInVertically(initialOffsetY = { 30 })
     ) {
         Card(
             modifier = modifier
                 .fillMaxWidth()
                 .border(
-                    width = 1.5.dp,
-                    color = result.sentiment.color.copy(alpha = 0.5f),
+                    width = 1.dp,
+                    color = sentimentColor.copy(alpha = 0.35f),
                     shape = RoundedCornerShape(20.dp)
                 )
                 .testTag("result_card"),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
-                // Top Header: Badge and Confidence
+                // Top Header: Badge, Title and Confidence
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -82,14 +91,14 @@ fun ResultCard(
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(CircleShape)
-                                .background(result.sentiment.color.copy(alpha = 0.18f)),
+                                .background(badgeBg),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = result.sentiment.icon,
                                 contentDescription = result.sentiment.title,
-                                tint = result.sentiment.color,
-                                modifier = Modifier.size(28.dp)
+                                tint = sentimentColor,
+                                modifier = Modifier.size(26.dp)
                             )
                         }
 
@@ -99,153 +108,195 @@ fun ResultCard(
                             Text(
                                 text = "PREDICTED SENTIMENT",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = TextMuted,
-                                fontWeight = FontWeight.Bold
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.8.sp
                             )
                             Text(
                                 text = result.sentiment.title,
-                                style = MaterialTheme.typography.headlineSmall.copy(
-                                    fontWeight = FontWeight.Black
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight = FontWeight.ExtraBold
                                 ),
-                                color = result.sentiment.color,
-                                modifier = Modifier.testTag("predicted_sentiment_label")
+                                color = sentimentColor,
+                                modifier = Modifier.testTag("sentiment_badge")
                             )
                         }
                     }
 
-                    // Confidence Pill
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(result.sentiment.color.copy(alpha = 0.15f))
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    // Confidence Score Pill
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = badgeBg,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, sentimentColor.copy(alpha = 0.3f))
                     ) {
-                        Column(horizontalAlignment = Alignment.End) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            horizontalAlignment = Alignment.End
+                        ) {
                             Text(
-                                text = "${(result.confidence * 100).toInt()}%",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = result.sentiment.color,
-                                modifier = Modifier.testTag("confidence_value")
+                                text = "${result.confidencePercent}%",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Black
+                                ),
+                                color = sentimentColor,
+                                modifier = Modifier.testTag("sentiment_score")
                             )
                             Text(
                                 text = "Confidence",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = TextSecondary,
-                                fontSize = 10.sp
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
-                // Probability breakdown bars
+                // Breakdown Probability Distribution
                 Text(
-                    text = "Calibrated Probability Distribution",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = TextSecondary,
-                    fontWeight = FontWeight.SemiBold
+                    text = "PROBABILITY DISTRIBUTION",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.5.sp
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 ProbabilityRow(
                     label = "Positive",
-                    probability = result.positiveProb,
-                    color = SentimentPositive
+                    score = result.positiveScore,
+                    color = SentimentPositive,
+                    testTag = "positive_prob_bar"
                 )
-                Spacer(modifier = Modifier.height(6.dp))
-                ProbabilityRow(
-                    label = "Neutral",
-                    probability = result.neutralProb,
-                    color = SentimentNeutral
-                )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 ProbabilityRow(
                     label = "Negative",
-                    probability = result.negativeProb,
-                    color = SentimentNegative
+                    score = result.negativeScore,
+                    color = SentimentNegative,
+                    testTag = "negative_prob_bar"
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                ProbabilityRow(
+                    label = "Neutral",
+                    score = result.neutralScore,
+                    color = SentimentNeutral,
+                    testTag = "neutral_prob_bar"
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Detected Keywords
-                if (result.detectedKeywords.isNotEmpty()) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Speed,
-                            contentDescription = null,
-                            tint = TextMuted,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Matched Sentiment Cues",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = TextSecondary,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-
+                // Key Drivers / Salient Words
+                if (result.matchedWords.isNotEmpty()) {
+                    Text(
+                        text = "KEY DRIVER KEYWORDS",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.5.sp
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
-
                     FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        result.detectedKeywords.forEach { token ->
-                            val tokenColor = if (token.polarity > 0) SentimentPositive else SentimentNegative
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(tokenColor.copy(alpha = 0.14f))
-                                    .border(0.5.dp, tokenColor.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
-                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                        result.matchedWords.take(8).forEach { word ->
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                border = androidx.compose.foundation.BorderStroke(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.outline
+                                )
                             ) {
                                 Text(
-                                    text = token.word,
+                                    text = word,
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = tokenColor,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     fontWeight = FontWeight.Medium
                                 )
                             }
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
                 }
 
-                // Model Explanation box
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(12.dp)
+                // Sarcasm / Mixed Sentiment Notice if triggered
+                if (result.sarcasmDetected || result.mixedSentiment) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            MaterialTheme.colorScheme.outline
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = when {
+                                    result.sarcasmDetected && result.mixedSentiment ->
+                                        "Sarcasm & mixed polarity cues were detected. Confidence has been calibrated accordingly."
+                                    result.sarcasmDetected ->
+                                        "Sarcastic phrasing detected ('oh great', exclamation cues) influencing final polarity."
+                                    else ->
+                                        "Mixed sentiment indicators identified (both positive & negative contrast words present)."
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                lineHeight = 16.sp
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                // Latency & Inference Engine Meta Info
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.Top) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Speed,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Latency: ${result.inferenceTimeMs}ms",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.Psychology,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(18.dp)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(14.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Column {
-                            Text(
-                                text = "Model Interpretation",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = result.explanation,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = TextSecondary
-                            )
-                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Engine: ${result.modelType}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
@@ -256,39 +307,43 @@ fun ResultCard(
 @Composable
 fun ProbabilityRow(
     label: String,
-    probability: Float,
-    color: Color
+    score: Float,
+    color: Color,
+    testTag: String = ""
 ) {
-    val percent = (probability * 100).toInt()
+    val percent = (score * 100).toInt()
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = TextSecondary,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.width(64.dp)
         )
 
         LinearProgressIndicator(
-            progress = { probability },
+            progress = { score.coerceIn(0f, 1f) },
             modifier = Modifier
                 .weight(1f)
                 .height(8.dp)
-                .clip(RoundedCornerShape(4.dp)),
+                .clip(RoundedCornerShape(4.dp))
+                .testTag(testTag),
             color = color,
-            trackColor = MaterialTheme.colorScheme.surface,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
             strokeCap = StrokeCap.Round
         )
 
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(10.dp))
 
         Text(
             text = "$percent%",
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
-            color = color,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontWeight = FontWeight.Bold
+            ),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.width(36.dp)
         )
     }

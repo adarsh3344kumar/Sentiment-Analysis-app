@@ -67,13 +67,9 @@ import com.example.data.AnalysisEntity
 import com.example.ml.SentimentType
 import com.example.ui.SentimentViewModel
 import com.example.ui.components.ProbabilityRow
-import com.example.ui.theme.DarkBorder
-import com.example.ui.theme.IndigoLight
 import com.example.ui.theme.SentimentNegative
 import com.example.ui.theme.SentimentNeutral
 import com.example.ui.theme.SentimentPositive
-import com.example.ui.theme.TextMuted
-import com.example.ui.theme.TextSecondary
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -94,6 +90,7 @@ fun HistoryScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
             .testTag("history_screen")
     ) {
@@ -107,47 +104,51 @@ fun HistoryScreen(
                 Text(
                     text = "Analysis History",
                     style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Black
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = (-0.3).sp
                     ),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.testTag("history_screen_title")
                 )
                 Text(
-                    text = "${historyList.size} stored records in SQLite (sentiment.db)",
+                    text = "${historyList.size} stored records in local SQLite",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
             Row {
-                if (historyList.isNotEmpty()) {
-                    IconButton(
-                        onClick = {
-                            val csvContent = viewModel.generateCsvContent()
+                IconButton(
+                    onClick = {
+                        val csv = viewModel.exportHistoryAsCsv()
+                        if (csv.isNotEmpty()) {
                             val sendIntent = Intent().apply {
                                 action = Intent.ACTION_SEND
-                                putExtra(Intent.EXTRA_TEXT, csvContent)
-                                putExtra(Intent.EXTRA_SUBJECT, "Sentiment_Analyses_Export.csv")
-                                type = "text/csv"
+                                putExtra(Intent.EXTRA_TEXT, csv)
+                                type = "text/plain"
                             }
-                            context.startActivity(Intent.createChooser(sendIntent, "Export Analysis CSV"))
-                        },
-                        modifier = Modifier.testTag("export_csv_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Share,
-                            contentDescription = "Export CSV",
-                            tint = IndigoLight
-                        )
-                    }
+                            context.startActivity(Intent.createChooser(sendIntent, "Export Analysis History"))
+                        } else {
+                            Toast.makeText(context, "No analysis history to export", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    modifier = Modifier.testTag("btn_export_csv")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.FileDownload,
+                        contentDescription = "Export CSV",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
 
+                if (historyList.isNotEmpty()) {
                     IconButton(
                         onClick = { showClearAllDialog = true },
-                        modifier = Modifier.testTag("clear_all_history_button")
+                        modifier = Modifier.testTag("btn_clear_all_history")
                     ) {
                         Icon(
                             imageVector = Icons.Default.DeleteSweep,
-                            contentDescription = "Clear All History",
+                            contentDescription = "Clear History",
                             tint = SentimentNegative
                         )
                     }
@@ -157,101 +158,124 @@ fun HistoryScreen(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Search Input
+        // Search Bar
         OutlinedTextField(
             value = searchQuery,
-            onValueChange = { viewModel.onSearchQueryChanged(it) },
+            onValueChange = { viewModel.setSearchQuery(it) },
             modifier = Modifier
                 .fillMaxWidth()
-                .testTag("history_search_input"),
-            placeholder = { Text("Search by review keywords...", color = TextMuted) },
+                .testTag("search_history_input"),
+            placeholder = {
+                Text(
+                    "Search previous reviews or keywords...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                )
+            },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Search",
-                    tint = TextSecondary
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
-            shape = RoundedCornerShape(12.dp),
+            trailingIcon = {
+                if (searchQuery.isNotEmpty()) {
+                    IconButton(onClick = { viewModel.setSearchQuery("") }) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Clear Search",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            },
             singleLine = true,
+            shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = DarkBorder,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
             )
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Filter Chips Row
+        // Filter Chips (All, Positive, Negative, Neutral)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            val filters = listOf(
-                "ALL" to "All",
-                "positive" to "Positive",
-                "negative" to "Negative",
-                "neutral" to "Neutral"
-            )
-
-            filters.forEach { (filterKey, filterLabel) ->
-                val isSelected = selectedFilter == filterKey
-                val chipColor = when (filterKey) {
-                    "positive" -> SentimentPositive
-                    "negative" -> SentimentNegative
-                    "neutral" -> SentimentNeutral
-                    else -> MaterialTheme.colorScheme.primary
-                }
-
+            val filters = listOf("ALL", "POSITIVE", "NEGATIVE", "NEUTRAL")
+            filters.forEach { filter ->
                 FilterChip(
-                    selected = isSelected,
-                    onClick = { viewModel.onFilterSelected(filterKey) },
-                    label = { Text(filterLabel, fontSize = 12.sp) },
+                    selected = selectedFilter == filter,
+                    onClick = { viewModel.setSelectedFilter(filter) },
+                    label = {
+                        Text(
+                            text = if (filter == "ALL") "All" else filter.lowercase().replaceFirstChar { it.uppercase() },
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (selectedFilter == filter) FontWeight.Bold else FontWeight.Medium
+                        )
+                    },
                     colors = FilterChipDefaults.filterChipColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        labelColor = TextSecondary,
-                        selectedContainerColor = chipColor.copy(alpha = 0.2f),
-                        selectedLabelColor = chipColor
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.primary
                     ),
-                    modifier = Modifier.testTag("filter_chip_$filterKey")
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = selectedFilter == filter,
+                        borderColor = MaterialTheme.colorScheme.outline
+                    ),
+                    modifier = Modifier.testTag("filter_chip_${filter.lowercase()}")
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // List or Empty State
+        // History Records List
         if (historyList.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .testTag("history_empty_state"),
+                    .testTag("empty_history_view"),
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.History,
-                        contentDescription = null,
-                        tint = TextMuted,
-                        modifier = Modifier.size(56.dp)
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "No analyses found",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = if (searchQuery.isNotEmpty()) "Try adjusting your search query." else "Analyze texts on the main tab to log them in local Room storage.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
-                    )
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.History,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = if (searchQuery.isNotEmpty()) "No matches found" else "No analyses yet",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (searchQuery.isNotEmpty()) "Try a different search term or clear the filter." else "Analyze your first text from the Home tab.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         } else {
@@ -262,257 +286,276 @@ fun HistoryScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(historyList, key = { it.id }) { item ->
-                    HistoryItemCard(
-                        item = item,
-                        onClick = { viewModel.openDetail(item) },
-                        onDelete = { viewModel.deleteAnalysis(item.id) }
-                    )
+                    val sentimentType = SentimentType.valueOf(item.predictedSentiment)
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { viewModel.selectDetailItem(item) }
+                            .testTag("history_card_${item.id}"),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .clip(CircleShape)
+                                            .background(sentimentType.color.copy(alpha = 0.12f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = sentimentType.icon,
+                                            contentDescription = sentimentType.title,
+                                            tint = sentimentType.color,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Column {
+                                        Text(
+                                            text = sentimentType.title,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = sentimentType.color
+                                        )
+                                        Text(
+                                            text = SimpleDateFormat("MMM dd, yyyy • hh:mm a", Locale.getDefault()).format(Date(item.timestamp)),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = sentimentType.color.copy(alpha = 0.1f)
+                                ) {
+                                    Text(
+                                        text = "${(item.confidenceScore * 100).toInt()}% conf",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = sentimentType.color,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            Text(
+                                text = item.inputText,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "${item.inferenceLatencyMs}ms • ${item.engineType}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+
+                                Row {
+                                    IconButton(
+                                        onClick = {
+                                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                            val clip = ClipData.newPlainText("Sentiment Analysis", item.inputText)
+                                            clipboard.setPrimaryClip(clip)
+                                            Toast.makeText(context, "Copied review text", Toast.LENGTH_SHORT).show()
+                                        },
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.ContentCopy,
+                                            contentDescription = "Copy text",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                    IconButton(
+                                        onClick = { viewModel.deleteAnalysis(item) },
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .testTag("delete_item_${item.id}")
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = "Delete item",
+                                            tint = SentimentNegative,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 
-    // Full Detail Modal Dialog
-    selectedDetailItem?.let { detail ->
-        val sentimentType = SentimentType.fromString(detail.sentiment)
-        val dateFormat = remember { SimpleDateFormat("MMMM dd, yyyy · HH:mm:ss", Locale.getDefault()) }
-        val dateFormatted = remember(detail.createdAt) { dateFormat.format(Date(detail.createdAt)) }
-
+    // Detail Modal Dialog
+    selectedDetailItem?.let { item ->
+        val sentimentType = SentimentType.valueOf(item.predictedSentiment)
         AlertDialog(
-            onDismissRequest = { viewModel.closeDetail() },
+            onDismissRequest = { viewModel.clearSelectedDetailItem() },
             title = {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(10.dp)
-                                .clip(CircleShape)
-                                .background(sentimentType.color)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "${sentimentType.title} Sentiment",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
-                            color = sentimentType.color
-                        )
-                    }
-
-                    IconButton(onClick = { viewModel.closeDetail() }) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "Close", tint = TextSecondary)
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = sentimentType.icon,
+                        contentDescription = null,
+                        tint = sentimentType.color,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Sentiment Detail Analysis",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             },
             text = {
                 Column {
                     Text(
-                        text = "Analyzed Review Content:",
+                        text = "Analyzed Text:",
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextMuted,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = detail.inputText,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White
-                    )
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = item.inputText,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(10.dp)
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(14.dp))
 
                     Text(
-                        text = "Calibrated Probability:",
+                        text = "Score Probabilities:",
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextMuted,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    ProbabilityRow(label = "Positive", probability = detail.positiveProb, color = SentimentPositive)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    ProbabilityRow(label = "Neutral", probability = detail.neutralProb, color = SentimentNeutral)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    ProbabilityRow(label = "Negative", probability = detail.negativeProb, color = SentimentNegative)
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    HorizontalDivider(color = DarkBorder)
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Model Version:", style = MaterialTheme.typography.labelSmall, color = TextMuted)
-                        Text(detail.modelVersion, style = MaterialTheme.typography.labelSmall, color = Color.White, fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Timestamp:", style = MaterialTheme.typography.labelSmall, color = TextMuted)
-                        Text(dateFormatted, style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-                    }
+                    ProbabilityRow(
+                        label = "Positive",
+                        score = item.positiveScore,
+                        color = SentimentPositive
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    ProbabilityRow(
+                        label = "Negative",
+                        score = item.negativeScore,
+                        color = SentimentNegative
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    ProbabilityRow(
+                        label = "Neutral",
+                        score = item.neutralScore,
+                        color = SentimentNeutral
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Text(
+                        text = "Timestamp: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date(item.timestamp))}\nLatency: ${item.inferenceLatencyMs}ms • Engine: ${item.engineType}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 16.sp
+                    )
                 }
             },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        val clip = ClipData.newPlainText("Analysis Record", detail.inputText)
-                        clipboard.setPrimaryClip(clip)
-                        Toast.makeText(context, "Review copied to clipboard", Toast.LENGTH_SHORT).show()
-                    }
-                ) {
-                    Icon(imageVector = Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Copy Text")
+                TextButton(onClick = { viewModel.clearSelectedDetailItem() }) {
+                    Text("Close", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.deleteAnalysis(detail.id) }) {
-                    Text("Delete", color = SentimentNegative)
+                TextButton(
+                    onClick = {
+                        val shareText = "Review: \"${item.inputText}\"\nSentiment: ${item.predictedSentiment} (${(item.confidenceScore * 100).toInt()}%)\nAnalyzed with Sentilyzer"
+                        val sendIntent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_TEXT, shareText)
+                            type = "text/plain"
+                        }
+                        context.startActivity(Intent.createChooser(sendIntent, "Share Sentiment"))
+                    }
+                ) {
+                    Text("Share", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(16.dp)
         )
     }
 
-    // Confirmation Alert Dialog
+    // Confirmation Dialog for Clear All
     if (showClearAllDialog) {
         AlertDialog(
             onDismissRequest = { showClearAllDialog = false },
-            title = { Text("Clear All History?") },
-            text = { Text("This will permanently delete all stored analysis records from the SQLite database.") },
+            title = {
+                Text(
+                    text = "Clear All Analysis History?",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            },
+            text = {
+                Text(
+                    text = "This will permanently delete all records stored in your local SQLite database (sentiment.db). This action cannot be undone.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.clearAllHistory()
+                        viewModel.clearAllAnalyses()
                         showClearAllDialog = false
-                    }
+                    },
+                    modifier = Modifier.testTag("confirm_clear_all_btn")
                 ) {
-                    Text("Delete All", color = SentimentNegative)
+                    Text("Delete All", color = SentimentNegative, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showClearAllDialog = false }) {
-                    Text("Cancel")
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(16.dp)
         )
-    }
-}
-
-@Composable
-fun HistoryItemCard(
-    item: AnalysisEntity,
-    onClick: () -> Unit,
-    onDelete: () -> Unit
-) {
-    val sentimentType = SentimentType.fromString(item.sentiment)
-    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy · HH:mm", Locale.getDefault()) }
-    val formattedDate = remember(item.createdAt) { dateFormat.format(Date(item.createdAt)) }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .border(1.dp, DarkBorder, RoundedCornerShape(14.dp)),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Sentiment Badge
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(sentimentType.color.copy(alpha = 0.15f))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(sentimentType.color)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = sentimentType.title,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = sentimentType.color
-                        )
-                    }
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "${(item.confidence * 100).toInt()}% conf",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary,
-                        fontWeight = FontWeight.SemiBold
-                    )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    IconButton(
-                        onClick = onDelete,
-                        modifier = Modifier.size(28.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete record",
-                            tint = TextMuted,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Input Text Preview
-            Text(
-                text = item.inputText,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Footer: Model version & Timestamp
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = item.modelVersion,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = TextMuted,
-                    fontSize = 10.sp
-                )
-
-                Text(
-                    text = formattedDate,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = TextMuted,
-                    fontSize = 10.sp
-                )
-            }
-        }
     }
 }

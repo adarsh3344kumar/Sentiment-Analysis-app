@@ -5,7 +5,6 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,12 +38,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.DarkBorder
 import com.example.ui.theme.SentimentNegative
 import com.example.ui.theme.SentimentNeutral
 import com.example.ui.theme.SentimentPositive
-import com.example.ui.theme.TextMuted
-import com.example.ui.theme.TextSecondary
 
 @Composable
 fun SentimentDonutChart(
@@ -63,6 +59,8 @@ fun SentimentDonutChart(
         )
     }
 
+    val emptyArcColor = MaterialTheme.colorScheme.surfaceVariant
+
     Box(
         modifier = modifier
             .size(190.dp)
@@ -70,15 +68,15 @@ fun SentimentDonutChart(
         contentAlignment = Alignment.Center
     ) {
         Canvas(modifier = Modifier.size(180.dp)) {
-            val strokeWidth = 24.dp.toPx()
+            val strokeWidth = 22.dp.toPx()
             val diameter = size.minDimension - strokeWidth
             val topLeft = Offset(strokeWidth / 2f, strokeWidth / 2f)
             val arcSize = Size(diameter, diameter)
 
             if (total == 0) {
-                // Empty state gray ring
+                // Empty state ring
                 drawArc(
-                    color = Color.DarkGray.copy(alpha = 0.3f),
+                    color = emptyArcColor,
                     startAngle = 0f,
                     sweepAngle = 360f,
                     useCenter = false,
@@ -141,14 +139,14 @@ fun SentimentDonutChart(
             Text(
                 text = "$total",
                 style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Black
+                    fontWeight = FontWeight.Bold
                 ),
-                color = Color.White
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Analyses",
+                text = "Total Records",
                 style = MaterialTheme.typography.labelSmall,
-                color = TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -164,12 +162,13 @@ fun MetricStatCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier
-            .border(1.dp, DarkBorder, RoundedCornerShape(16.dp)),
+        modifier = modifier,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -180,14 +179,14 @@ fun MetricStatCard(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.labelMedium,
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
                 )
                 Box(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(accentColor.copy(alpha = 0.15f)),
+                        .background(accentColor.copy(alpha = 0.12f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -204,7 +203,7 @@ fun MetricStatCard(
             Text(
                 text = value,
                 style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Black
+                    fontWeight = FontWeight.Bold
                 ),
                 color = accentColor
             )
@@ -214,7 +213,7 @@ fun MetricStatCard(
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = TextMuted,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 11.sp
             )
         }
@@ -244,7 +243,7 @@ fun ChartLegendItem(
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Medium
             )
         }
@@ -254,13 +253,13 @@ fun ChartLegendItem(
                 text = "$count",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = "(${percent.toInt()}%)",
                 style = MaterialTheme.typography.labelSmall,
-                color = TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
