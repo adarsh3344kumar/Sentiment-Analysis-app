@@ -1,0 +1,6 @@
+{
+  "name": "Sentilyzer",
+  "description": "Complete End-to-End Sentiment Analysis Tool with TF-IDF and N-Gram on-device classifier, live sentiment confidence scoring, history database, interactive analytics, and model evaluation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
